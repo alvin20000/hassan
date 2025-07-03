@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import type { Database } from '../lib/supabase'
 
 type Tables = Database['public']['Tables']
@@ -10,13 +10,6 @@ type AdminUser = Tables['admin_users']['Row']
 type Order = Tables['orders']['Row']
 type OrderItem = Tables['order_items']['Row']
 type BusinessAnalytics = Tables['business_analytics']['Row']
-
-// Check if Supabase is properly configured
-const isSupabaseConfigured = () => {
-  const url = import.meta.env.VITE_SUPABASE_URL
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY
-  return url && key && !url.includes('your-project-ref') && !key.includes('your-anon-key')
-}
 
 // Helper function to get current admin ID from localStorage
 const getCurrentAdminId = (): string | null => {
