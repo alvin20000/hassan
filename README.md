@@ -12,138 +12,46 @@ A modern e-commerce platform built with React, TypeScript, Tailwind CSS, and Sup
 - 📊 Real-time inventory tracking
 - 💬 Customer support chat
 - 🎯 Promotional campaigns
-- 📦 Order management system
+- 📦 **Advanced Order Management System**
+  - Real-time order tracking and status updates
+  - Comprehensive order analytics and reporting
+  - Customer information management
+  - Order filtering and search capabilities
+  - Export functionality for order data
+  - Detailed order view with item breakdown
+  - Payment status tracking
+  - Print-friendly order details
 
-## Tech Stack
+## Admin Dashboard Features
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS
-- **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Deployment**: Vercel
-- **State Management**: React Context
-- **Routing**: React Router DOM
-- **Icons**: Lucide React
+### 📊 Dashboard Overview
+- Real-time analytics with order statistics
+- Revenue tracking and performance metrics
+- Recent orders display
+- Product management overview
 
-## Getting Started
+### 🛍️ Product Management
+- Add, edit, and delete products
+- Category management
+- Image upload functionality
+- Inventory tracking
+- Product search and filtering
 
-### Prerequisites
+### 📦 Order Management
+- **Comprehensive Order Dashboard**: View all orders with real-time status updates
+- **Advanced Filtering**: Filter by status, payment status, date, and search by customer/order number
+- **Order Analytics**: View total orders, revenue, pending orders, and average order value
+- **Detailed Order View**: Click any order to see complete details including:
+  - Customer information (name, email, phone, address)
+  - Order items with quantities and prices
+  - Order status and payment status
+  - Order notes and timestamps
+- **Status Management**: Update order status directly from the table
+- **Export Functionality**: Export orders to CSV format
+- **Print Support**: Print order details for physical records
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd ma-online-store
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` with your Supabase credentials:
-```env
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-5. Run the development server:
-```bash
-npm run dev
-```
-
-## Deployment
-
-### Vercel Deployment
-
-1. Connect your repository to Vercel
-2. Set environment variables in Vercel dashboard:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Deploy automatically on push to main branch
-
-The `vercel.json` configuration ensures:
-- ✅ No 404 errors on page refresh (SPA routing)
-- ✅ Admin routes work correctly
-- ✅ Database access maintained in production
-- ✅ Proper CORS headers for API calls
-
-### Database Setup
-
-1. Create a new Supabase project
-2. Run the migrations in the `supabase/migrations` folder
-3. Set up Row Level Security (RLS) policies
-4. Configure storage buckets for images
-
-## Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-│   ├── admin/          # Admin-specific components
-│   ├── common/         # Shared components
-│   ├── layout/         # Layout components
-│   └── products/       # Product-related components
-├── context/            # React Context providers
-├── hooks/              # Custom React hooks
-├── lib/                # External library configurations
-├── pages/              # Page components
-├── services/           # API and database services
-├── types/              # TypeScript type definitions
-└── utils/              # Utility functions
-```
-
-## Admin Access
-
-Access the admin dashboard at `/admin-user` with the following credentials:
-- Username: `admin`
-- Password: `admin123`
-
-## Features Overview
-
-### Customer Features
-- Browse products by category
-- Search and filter products
-- Add items to cart
-- Place orders via WhatsApp
-- View promotions and deals
-- Contact support
-
-### Admin Features
-- Product management (CRUD operations)
-- Image upload and management
-- Order tracking
-- Inventory management
-- Analytics dashboard
-- Real-time sync with main website
-
-## Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `VITE_SUPABASE_URL` | Supabase project URL | Yes |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support, contact us at support@mastore.com or use the in-app chat feature.
+### ⚙️ Settings
+- Admin user management
+- System configuration
+- Security settings

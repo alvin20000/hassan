@@ -26,12 +26,39 @@ import {
 } from 'lucide-react';
 import { useAdminProducts, useCategories } from '../hooks/useDatabase';
 import { adminAuthService } from '../services/database';
+import { orderService } from '../services/orderService';
 import ImageUpload from '../components/admin/ImageUpload';
+import OrdersPage from './OrdersPage';
 
 // Dashboard Overview Component
 const DashboardOverview: React.FC = () => {
   const { products } = useAdminProducts();
   const { categories } = useCategories();
+  const [orderAnalytics, setOrderAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        const analytics = await orderService.getOrderAnalytics();
+        setOrderAnalytics(analytics);
+      } catch (error) {
+        console.error('Error loading order analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnalytics();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'UGX',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const stats = [
     {
@@ -50,14 +77,14 @@ const DashboardOverview: React.FC = () => {
     },
     {
       title: 'Orders Today',
-      value: '24',
+      value: loading ? '...' : (orderAnalytics?.total_orders || 0).toString(),
       icon: ShoppingCart,
       color: 'bg-orange-500',
       change: '+18%'
     },
     {
       title: 'Revenue',
-      value: 'UGX 2.4M',
+      value: loading ? '...' : formatCurrency(orderAnalytics?.total_revenue || 0),
       icon: DollarSign,
       color: 'bg-purple-500',
       change: '+25%'
@@ -118,20 +145,49 @@ const DashboardOverview: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Orders</h3>
           <div className="space-y-3">
-            <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-              <Plus className="w-5 h-5 text-blue-500" />
-              <span className="text-gray-900 dark:text-white">Add New Product</span>
-            </button>
-            <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-              <Upload className="w-5 h-5 text-green-500" />
-              <span className="text-gray-900 dark:text-white">Import Products</span>
-            </button>
-            <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-              <BarChart3 className="w-5 h-5 text-purple-500" />
-              <span className="text-gray-900 dark:text-white">View Analytics</span>
-            </button>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Loading orders...</p>
+              </div>
+            ) : orderAnalytics?.recent_orders ? (
+              orderAnalytics.recent_orders.slice(0, 5).map((order: any) => (
+                <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                      <ShoppingCart className="w-4 h-4 text-orange-600 dark:text-orange-300" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        #{order.order_number}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {order.customer_name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {formatCurrency(order.total_amount)}
+                    </p>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      order.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    }`}>
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-4">
+                <ShoppingCart className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">No recent orders</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -169,10 +225,16 @@ const ProductsManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Ensure correct data types for database
+      const formattedData = {
+        ...formData,
+        price: Number(formData.price),
+        tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : formData.tags,
+      };
       if (editingProduct) {
-        await updateProduct(editingProduct.id, formData);
+        await updateProduct(editingProduct.id, formattedData);
       } else {
-        await createProduct(formData);
+        await createProduct(formattedData);
       }
       setShowAddModal(false);
       setEditingProduct(null);
@@ -771,41 +833,66 @@ const AdminDashboard: React.FC = () => {
       <div className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}>
         <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ease-linear duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setSidebarOpen(false)} />
         
-        <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800 rounded-r-3xl shadow-2xl transition ease-in-out duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <button
-              type="button"
-              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
-          </div>
-          <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4 mb-6">
+        <div className={`absolute left-0 top-0 flex flex-col w-80 bg-white dark:bg-gray-800 rounded-r-3xl shadow-2xl transition ease-in-out duration-300 transform h-full ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
               <img className="h-8 w-auto" src="/logo.png" alt="M.A Store" />
               <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">Admin</span>
             </div>
-            <nav className="mt-5 px-2 space-y-1">
-              {navigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `group flex items-center px-4 py-3 text-base font-medium rounded-xl transition-colors duration-200 ${
-                      isActive
-                        ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 shadow-md'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-orange-600 dark:hover:text-orange-300'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                  end
-                >
-                  <item.icon className="mr-4 h-6 w-6" />
-                  {item.name}
-                </NavLink>
-              ))}
-            </nav>
+            <button
+              type="button"
+              className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4">
+              <nav className="space-y-2">
+                {navigation.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      `group flex items-center px-4 py-3 text-base font-medium rounded-xl transition-colors duration-200 ${
+                        isActive
+                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 shadow-md'
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-orange-600 dark:hover:text-orange-300'
+                      }`
+                    }
+                    onClick={() => setSidebarOpen(false)}
+                    end
+                  >
+                    <item.icon className="mr-4 h-6 w-6" />
+                    {item.name}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+            
+            {/* Profile section - Fixed at bottom */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-2xl shadow-inner">
+                <div className="h-10 w-10 rounded-full bg-orange-500 flex items-center justify-center shadow">
+                  <span className="text-lg font-bold text-white">
+                    {currentAdmin.full_name?.charAt(0) || 'A'}
+                  </span>
+                </div>
+                <div className="ml-4">
+                  <p className="text-base font-semibold text-gray-900 dark:text-white">
+                    {currentAdmin.full_name}
+                  </p>
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-300 flex items-center mt-1"
+                  >
+                    <LogOut className="w-3 h-3 mr-1" />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -880,7 +967,7 @@ const AdminDashboard: React.FC = () => {
                 <Route path="/" element={<Navigate to="/admin-user/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardOverview />} />
                 <Route path="/products" element={<ProductsManagement />} />
-                <Route path="/orders" element={<div>Orders Management (Coming Soon)</div>} />
+                <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>
             </div>

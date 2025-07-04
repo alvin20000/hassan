@@ -171,7 +171,21 @@ export const orderService = {
         throw error;
       }
 
-      return data;
+      // Get recent orders for dashboard
+      const { data: recentOrders, error: recentError } = await supabase
+        .from('orders')
+        .select('id, order_number, customer_name, total_amount, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (recentError) {
+        console.error('Error fetching recent orders:', recentError);
+      }
+
+      return {
+        ...data,
+        recent_orders: recentOrders || []
+      };
     } catch (error) {
       console.error('Error fetching order analytics:', error);
       return {
@@ -180,7 +194,8 @@ export const orderService = {
         average_order_value: 0,
         pending_orders: 0,
         completed_orders: 0,
-        total_customers: 0
+        total_customers: 0,
+        recent_orders: []
       };
     }
   }

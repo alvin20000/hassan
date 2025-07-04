@@ -261,32 +261,26 @@ export const productService = {
     }
 
     try {
-      // Get current admin ID - this is critical for the new function signature
       const adminId = getCurrentAdminId()
       if (!adminId) {
         throw new Error('Admin authentication required - please log in again')
       }
 
       const client = await getAuthenticatedClient()
-      
-      console.log('🚀 Creating product with enhanced function:', product, images)
+      console.log('🚀 Creating product with images:', product, images)
       console.log('Using admin ID:', adminId)
-      
-      // Validate required fields
       if (!product.name || !product.description || !product.price || !product.category_id) {
         throw new Error('Missing required fields: name, description, price, and category are required')
       }
-
-      // Use the enhanced product creation function with admin_id as first parameter
-      const { data, error } = await client.rpc('create_product_enhanced', {
-        p_admin_id: adminId,
+      // Use the correct function for product creation with images
+      const { data, error } = await client.rpc('create_product_with_images', {
         p_product_data: {
           id: product.id,
           name: product.name,
           description: product.description,
           price: product.price,
           category_id: product.category_id,
-          tags: (product.tags || []).join(', '),
+          tags: product.tags || [],
           unit: product.unit || 'kg',
           available: product.available !== false,
           featured: product.featured === true,
@@ -294,21 +288,16 @@ export const productService = {
         },
         p_images: images
       })
-
       if (error) {
         console.error('Product creation error:', error)
         throw new Error(`Failed to create product: ${error.message}`)
       }
-
       console.log('✅ Product created successfully:', data)
-      
-      // Enhanced event dispatching for real-time sync
       dispatchProductEvent('productCreated', { 
         id: data.id, 
         product: data,
         timestamp: new Date().toISOString()
       })
-      
       return data
     } catch (error) {
       console.error('Error creating product:', error)
@@ -316,55 +305,49 @@ export const productService = {
     }
   },
 
-  async update(id: string, updates: Tables['products']['Update']) {
+  async update(id: string, updates: Tables['products']['Update'], images: string[] = []) {
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase is not configured. Please connect to Supabase first.')
     }
-
     try {
-      // Get current admin ID - this is critical for the new function signature
       const adminId = getCurrentAdminId()
       if (!adminId) {
         throw new Error('Admin authentication required - please log in again')
       }
-
       const client = await getAuthenticatedClient()
-      
-      console.log('📝 Updating product with enhanced function:', id, updates)
+      console.log('📝 Updating product with images:', id, updates, images)
       console.log('Using admin ID:', adminId)
-      
-      // Use the enhanced product update function with admin_id as first parameter
-      const { data, error } = await client.rpc('update_product_enhanced', {
-        p_admin_id: adminId,
+      // Use the correct function for product update with images
+      const { data, error } = await client.rpc('update_product_with_images', {
         p_product_id: id,
         p_product_data: {
           name: updates.name,
           description: updates.description,
           price: updates.price,
           category_id: updates.category_id,
-          tags: Array.isArray(updates.tags) ? updates.tags.join(', ') : updates.tags,
+          tags: Array.isArray(updates.tags)
+            ? updates.tags
+            : (typeof updates.tags === 'string' && updates.tags.trim() !== ''
+                ? updates.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+                : []),
           unit: updates.unit,
           available: updates.available,
           featured: updates.featured,
           image: (updates as any).image
-        }
+        },
+        p_images: images
       })
-
       if (error) {
         console.error('Product update error:', error)
         throw new Error(`Failed to update product: ${error.message}`)
       }
-
       console.log('✅ Product updated successfully:', data)
-      
-      // Enhanced event dispatching for real-time sync
       dispatchProductEvent('productUpdated', { 
         id, 
         updates, 
         data,
         timestamp: new Date().toISOString()
       })
-      
       return data
     } catch (error) {
       console.error('Error updating product:', error)
