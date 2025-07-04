@@ -27,6 +27,7 @@ import {
 import { useAdminProducts, useCategories } from '../hooks/useDatabase';
 import { adminAuthService } from '../services/database';
 import { orderService } from '../services/orderService';
+import { getProductImageUrl } from '../lib/supabase';
 import ImageUpload from '../components/admin/ImageUpload';
 import OrdersPage from './OrdersPage';
 
@@ -124,7 +125,7 @@ const DashboardOverview: React.FC = () => {
             {products.slice(0, 5).map((product) => (
               <div key={product.id} className="flex items-center space-x-3">
                 <img 
-                  src={product.image || '/images/placeholder.jpg'} 
+                  src={getProductImageUrl(product.image || '/images/placeholder.jpg')} 
                   alt={product.name}
                   className="w-10 h-10 rounded-lg object-cover"
                 />

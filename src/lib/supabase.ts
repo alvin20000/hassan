@@ -359,7 +359,7 @@ export interface Database {
 }
 
 // Enhanced image upload helper with proper error handling and validation
-export const uploadImage = async (file: File, bucket: string = 'product-images'): Promise<string> => {
+export const uploadImage = async (file: File, bucket: string = 'products-images'): Promise<string> => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }
@@ -408,7 +408,7 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
 }
 
 // Delete image helper
-export const deleteImage = async (url: string, bucket: string = 'product-images'): Promise<void> => {
+export const deleteImage = async (url: string, bucket: string = 'products-images'): Promise<void> => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }
@@ -460,8 +460,61 @@ export const getOptimizedImageUrl = (url: string, width?: number, height?: numbe
   }
 }
 
+// Helper function to construct product image URL from the new bucket structure
+export const getProductImageUrl = (imagePath: string): string => {
+  if (!imagePath || !isConfigured) return '/images/placeholder.jpg'
+  
+  // If it's already a full URL, return it
+  if (imagePath.startsWith('http')) {
+    return imagePath
+  }
+  
+  // If it's a relative path, construct the full URL
+  if (imagePath.startsWith('/')) {
+    return imagePath
+  }
+  
+  // If it's just a filename or path, construct the bucket URL
+  try {
+    const { data } = supabase.storage
+      .from('products-images')
+      .getPublicUrl(`products/${imagePath}`)
+    
+    return data.publicUrl
+  } catch (error) {
+    console.error('Error constructing product image URL:', error)
+    return '/images/placeholder.jpg'
+  }
+}
+
+// Helper function to get the bucket URL for a product image
+export const getBucketImageUrl = (imagePath: string, bucket: string = 'products-images'): string => {
+  if (!imagePath || !isConfigured) return '/images/placeholder.jpg'
+  
+  // If it's already a full URL, return it
+  if (imagePath.startsWith('http')) {
+    return imagePath
+  }
+  
+  // If it's a relative path, construct the full URL
+  if (imagePath.startsWith('/')) {
+    return imagePath
+  }
+  
+  try {
+    const { data } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(imagePath)
+    
+    return data.publicUrl
+  } catch (error) {
+    console.error('Error constructing bucket image URL:', error)
+    return '/images/placeholder.jpg'
+  }
+}
+
 // Storage bucket management
-export const ensureStorageBucket = async (bucketName: string = 'product-images') => {
+export const ensureStorageBucket = async (bucketName: string = 'products-images') => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }

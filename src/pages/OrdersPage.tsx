@@ -28,6 +28,7 @@ import {
   Star
 } from 'lucide-react';
 import { orderService, DatabaseOrder } from '../services/orderService';
+import { getProductImageUrl } from '../lib/supabase';
 
 interface OrderStatus {
   value: string;

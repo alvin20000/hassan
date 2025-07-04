@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, ShoppingBag } from 'lucide-react';
 import { Product } from '../../types';
+import { getProductImageUrl } from '../../lib/supabase';
 
 interface ProductCardProps {
   product: Product;
@@ -27,7 +28,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onOrder }) => {
       {/* Square aspect ratio image container */}
       <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700 relative">
         <img
-          src={product.image}
+          src={getProductImageUrl(product.image)}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
