@@ -359,7 +359,7 @@ export interface Database {
 }
 
 // Enhanced image upload helper with proper error handling and validation
-export const uploadImage = async (file: File, bucket: string = 'products-images'): Promise<string> => {
+export const uploadImage = async (file: File, bucket: string = 'product-images'): Promise<string> => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }
@@ -408,7 +408,7 @@ export const uploadImage = async (file: File, bucket: string = 'products-images'
 }
 
 // Delete image helper
-export const deleteImage = async (url: string, bucket: string = 'products-images'): Promise<void> => {
+export const deleteImage = async (url: string, bucket: string = 'product-images'): Promise<void> => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }
@@ -477,7 +477,7 @@ export const getProductImageUrl = (imagePath: string): string => {
   // If it's just a filename or path, construct the bucket URL
   try {
     const { data } = supabase.storage
-      .from('products-images')
+      .from('product-images')
       .getPublicUrl(`products/${imagePath}`)
     
     return data.publicUrl
@@ -488,7 +488,7 @@ export const getProductImageUrl = (imagePath: string): string => {
 }
 
 // Helper function to get the bucket URL for a product image
-export const getBucketImageUrl = (imagePath: string, bucket: string = 'products-images'): string => {
+export const getBucketImageUrl = (imagePath: string, bucket: string = 'product-images'): string => {
   if (!imagePath || !isConfigured) return '/images/placeholder.jpg'
   
   // If it's already a full URL, return it
@@ -514,7 +514,7 @@ export const getBucketImageUrl = (imagePath: string, bucket: string = 'products-
 }
 
 // Storage bucket management
-export const ensureStorageBucket = async (bucketName: string = 'products-images') => {
+export const ensureStorageBucket = async (bucketName: string = 'product-images') => {
   if (!isConfigured) {
     throw new Error('Supabase is not configured. Please connect to Supabase first.')
   }
