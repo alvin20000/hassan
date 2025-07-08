@@ -3,6 +3,6 @@
     { "source": "/(.*)", "destination": "/" }
   ],
   "env": {
-    "VITE_SUPABASE_URL": "https://saiqmobdgowftykkqilx.supabase.co",
+    "VITE_SUPABASE_URL": "https://lhfhckdsxbnbzzmzqlan.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhaXFtb2JkZ293ZnR5a2txaWx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5NDIyMTksImV4cCI6MjA2NjUxODIxOX0.GhbRxy9G1GjQAwoGU-Qinw7yDYvQNHFMvFrwNn5VjQs"  }
 }
