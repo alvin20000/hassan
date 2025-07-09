@@ -383,11 +383,16 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `products/${fileName}`
 
-    // First, ensure we have a valid session for authenticated upload
+    // Check for admin authentication and Supabase session
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      // Try to create an anonymous session or use service role for admin operations
-      console.log('No session found, attempting upload with current client')
+    const isAdminAuthenticated = localStorage.getItem('admin_authenticated') === 'true'
+    
+    if (!session && isAdminAuthenticated) {
+      console.log('No Supabase session found for admin user, attempting upload anyway')
+      // For admin users, we'll try the upload even without a session
+      // The storage policies should be configured to allow this
+    } else if (!session && !isAdminAuthenticated) {
+      throw new Error('Authentication required for image upload. Please log in.')
     }
 
     const { error: uploadError } = await supabase.storage
@@ -401,8 +406,8 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
     if (uploadError) {
       console.error('Upload error:', uploadError)
       
-      // If it's a policy violation, try with upsert enabled
-      if (uploadError.message.includes('policy') || uploadError.message.includes('Unauthorized')) {
+      // If it's a policy violation and user is admin, try alternative approaches
+      if ((uploadError.message.includes('policy') || uploadError.message.includes('Unauthorized')) && isAdminAuthenticated) {
         console.log('Retrying upload with upsert enabled...')
         const { error: retryError } = await supabase.storage
           .from(bucket)
@@ -413,10 +418,15 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
           })
         
         if (retryError) {
-          throw new Error(`Failed to upload image: ${retryError.message}`)
+          // If still failing, provide admin-specific error message
+          throw new Error(`Storage upload failed. Please ensure the 'product-images' bucket exists and has proper RLS policies configured for authenticated users. Error: ${retryError.message}`)
         }
       } else {
-        throw new Error(`Failed to upload image: ${uploadError.message}`)
+        if (uploadError.message.includes('policy') || uploadError.message.includes('Unauthorized')) {
+          throw new Error(`Storage access denied. Please ensure you are properly authenticated and the storage bucket has correct RLS policies. Error: ${uploadError.message}`)
+        } else {
+          throw new Error(`Failed to upload image: ${uploadError.message}`)
+        }
       }
     }
 

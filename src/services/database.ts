@@ -79,6 +79,10 @@ export const adminAuthService = {
         
         console.log('✅ Alternative authentication successful')
         const admin = typeof altData === 'string' ? JSON.parse(altData) : altData
+        
+        // Establish Supabase auth session for storage operations
+        await this.establishSupabaseSession(admin)
+        
         return { user: null, admin }
       }
 
@@ -90,6 +94,8 @@ export const adminAuthService = {
       const admin = typeof data === 'string' ? JSON.parse(data) : data
       console.log('✅ Admin authenticated successfully:', admin.username)
 
+      // Establish Supabase auth session for storage operations
+      await this.establishSupabaseSession(admin)
       return { user: null, admin }
     } catch (error) {
       console.error('❌ Sign in error:', error)
@@ -97,6 +103,55 @@ export const adminAuthService = {
     }
   },
 
+  async establishSupabaseSession(admin: any) {
+    try {
+      // Create a temporary auth session using the admin's email
+      // This is needed for storage operations that require authenticated users
+      const tempPassword = `temp_${admin.id}_${Date.now()}`
+      
+      // First, try to sign up the admin user in Supabase auth if they don't exist
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: admin.email,
+        password: tempPassword,
+        options: {
+          data: {
+            admin_id: admin.id,
+            username: admin.username,
+            full_name: admin.full_name,
+            role: admin.role
+          }
+        }
+      })
+      
+      // If signup fails because user exists, that's fine
+      if (signUpError && !signUpError.message.includes('already registered')) {
+        console.warn('Admin signup warning:', signUpError.message)
+      }
+      
+      // Now sign in with the admin's email and temp password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: admin.email,
+        password: tempPassword
+      })
+      
+      if (signInError) {
+        // If sign in fails, try to update the password and sign in again
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(admin.email)
+        if (!resetError) {
+          console.log('Password reset sent for admin auth session')
+        }
+        
+        // For now, we'll continue without the auth session
+        // Storage operations will need to be handled differently
+        console.warn('Could not establish Supabase auth session:', signInError.message)
+      } else {
+        console.log('✅ Supabase auth session established for admin')
+      }
+    } catch (error) {
+      console.warn('Warning: Could not establish Supabase auth session:', error)
+      // Continue without auth session - storage operations may fail
+    }
+  },
   async signOut() {
     try {
       // Clear localStorage
