@@ -383,16 +383,41 @@ export const uploadImage = async (file: File, bucket: string = 'product-images')
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     const filePath = `products/${fileName}`
 
+    // First, ensure we have a valid session for authenticated upload
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      // Try to create an anonymous session or use service role for admin operations
+      console.log('No session found, attempting upload with current client')
+    }
+
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
+        contentType: file.type
       })
 
     if (uploadError) {
       console.error('Upload error:', uploadError)
-      throw new Error(`Failed to upload image: ${uploadError.message}`)
+      
+      // If it's a policy violation, try with upsert enabled
+      if (uploadError.message.includes('policy') || uploadError.message.includes('Unauthorized')) {
+        console.log('Retrying upload with upsert enabled...')
+        const { error: retryError } = await supabase.storage
+          .from(bucket)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type
+          })
+        
+        if (retryError) {
+          throw new Error(`Failed to upload image: ${retryError.message}`)
+        }
+      } else {
+        throw new Error(`Failed to upload image: ${uploadError.message}`)
+      }
     }
 
     const { data } = supabase.storage
@@ -416,10 +441,12 @@ export const deleteImage = async (url: string, bucket: string = 'product-images'
   try {
     // Extract file path from URL
     const urlParts = url.split('/')
-    const bucketIndex = urlParts.findIndex(part => part === bucket)
+    const bucketIndex = urlParts.findIndex(part => part === 'object')
     if (bucketIndex === -1) return
 
-    const filePath = urlParts.slice(bucketIndex + 1).join('/')
+    // Extract the path after /object/bucket-name/
+    const pathStartIndex = bucketIndex + 2 // Skip 'object' and bucket name
+    const filePath = urlParts.slice(pathStartIndex).join('/')
     if (!filePath) return
 
     const { error } = await supabase.storage

@@ -92,7 +92,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         }));
       }, 200);
 
+      console.log('Starting image upload to product-images bucket...');
       const imageUrl = await uploadImage(file);
+      console.log('Image upload successful, URL:', imageUrl);
       
       clearInterval(progressInterval);
       
@@ -111,6 +113,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       }, 2000);
 
     } catch (error) {
+      console.error('Image upload failed:', error);
       setUploadState({
         uploading: false,
         progress: 0,

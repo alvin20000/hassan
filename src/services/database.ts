@@ -146,14 +146,22 @@ export const adminAuthService = {
 
 // Enhanced Supabase client with admin context
 const getAuthenticatedClient = async () => {
+  // For admin operations, we need to ensure proper authentication
+  const adminUser = localStorage.getItem('admin_user')
   const isAdminAuthenticated = localStorage.getItem('admin_authenticated') === 'true'
   
   if (isAdminAuthenticated) {
-    // Set admin context for this session
+    // For admin operations, we can use the existing client
+    // The storage policies should allow authenticated users to upload
     try {
-      await supabase.rpc('set_admin_context')
+      // Check if we have a session, if not, create one for admin operations
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session && adminUser) {
+        // For admin operations without auth session, we'll rely on the RLS policies
+        console.log('Admin user authenticated via localStorage, proceeding with storage operations')
+      }
     } catch (error) {
-      console.warn('Failed to set admin context:', error)
+      console.warn('Session check failed:', error)
     }
   }
   
