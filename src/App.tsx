@@ -10,6 +10,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
+import { UserAuthProvider } from './context/UserAuthContext';
 import SplashScreen from './components/SplashScreen';
 import './App.css';
 
@@ -30,33 +31,35 @@ function App() {
 
   return (
     <ThemeProvider>
-      <CartProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-            <Routes>
-              {/* External Admin Routes - Only accessible via direct URL */}
-              <Route path="/admin-user" element={<AdminLoginPage />} />
-              <Route path="/admin-user/*" element={<AdminDashboard />} />
-              
-              {/* Public Routes with main website layout */}
-              <Route path="/*" element={
-                <>
-                  <Header />
-                  <div className="container mx-auto px-4 pt-20">
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/promotions" element={<PromotionsPage />} />
-                      <Route path="/help" element={<HelpPage />} />
-                      <Route path="/cart" element={<CartPage />} />
-                    </Routes>
-                  </div>
-                  <CurvedNavbar />
-                </>
-              } />
-            </Routes>
-          </div>
-        </Router>
-      </CartProvider>
+      <UserAuthProvider>
+        <CartProvider>
+          <Router>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+              <Routes>
+                {/* External Admin Routes - Only accessible via direct URL */}
+                <Route path="/admin-user" element={<AdminLoginPage />} />
+                <Route path="/admin-user/*" element={<AdminDashboard />} />
+                
+                {/* Public Routes with main website layout */}
+                <Route path="/*" element={
+                  <>
+                    <Header />
+                    <div className="container mx-auto px-4 pt-20">
+                      <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/promotions" element={<PromotionsPage />} />
+                        <Route path="/help" element={<HelpPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                      </Routes>
+                    </div>
+                    <CurvedNavbar />
+                  </>
+                } />
+              </Routes>
+            </div>
+          </Router>
+        </CartProvider>
+      </UserAuthProvider>
     </ThemeProvider>
   );
 }
