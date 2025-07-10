@@ -1,11 +1,19 @@
 import { supabase } from '../lib/supabase';
 import { CartItem } from '../types';
+import { AppUser } from './userAuthService';
 
 export interface OrderData {
   customerName: string;
   customerEmail?: string;
   customerPhone?: string;
   customerAddress?: string;
+  items: CartItem[];
+  totalAmount: number;
+  notes?: string;
+}
+
+export interface OrderDataWithUser {
+  user: AppUser;
   items: CartItem[];
   totalAmount: number;
   notes?: string;
