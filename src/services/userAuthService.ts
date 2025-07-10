@@ -4,8 +4,6 @@ export interface AppUser {
   id: string;
   email: string;
   full_name: string;
-  phone?: string;
-  address?: string;
   is_active: boolean;
   created_at: string;
 }
@@ -13,9 +11,8 @@ export interface AppUser {
 export interface RegisterData {
   email: string;
   password: string;
+  confirmPassword: string;
   full_name: string;
-  phone?: string;
-  address?: string;
 }
 
 export interface LoginData {
@@ -25,8 +22,6 @@ export interface LoginData {
 
 export interface UpdateProfileData {
   full_name?: string;
-  phone?: string;
-  address?: string;
 }
 
 export const userAuthService = {
@@ -35,15 +30,23 @@ export const userAuthService = {
       throw new Error('Database connection required. Please connect to Supabase first.');
     }
 
+    // Validate password confirmation
+    if (data.password !== data.confirmPassword) {
+      throw new Error('Passwords do not match');
+    }
+
+    // Validate password strength
+    if (data.password.length < 6) {
+      throw new Error('Password must be at least 6 characters long');
+    }
+
     try {
       console.log('🔐 Registering new user:', data.email);
       
       const { data: result, error } = await supabase.rpc('register_user', {
         p_email: data.email,
         p_password: data.password,
-        p_full_name: data.full_name,
-        p_phone: data.phone || null,
-        p_address: data.address || null
+        p_full_name: data.full_name
       });
 
       if (error) {
@@ -101,9 +104,7 @@ export const userAuthService = {
       
       const { data: result, error } = await supabase.rpc('update_user_profile', {
         p_user_id: userId,
-        p_full_name: data.full_name || null,
-        p_phone: data.phone || null,
-        p_address: data.address || null
+        p_full_name: data.full_name || null
       });
 
       if (error) {
