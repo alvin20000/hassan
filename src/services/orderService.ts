@@ -14,6 +14,8 @@ export interface OrderData {
 
 export interface OrderDataWithUser {
   user: AppUser;
+  customerPhone: string;
+  customerAddress: string;
   items: CartItem[];
   totalAmount: number;
   notes?: string;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Package, Calendar, DollarSign, Edit, Save, X, Loader2 } from 'lucide-react';
+import { User, Mail, Calendar, Package, DollarSign, Edit, Save, X, Loader2 } from 'lucide-react';
 import { useUserAuth } from '../../context/UserAuthContext';
 
 const UserProfile: React.FC = () => {
@@ -12,17 +12,13 @@ const UserProfile: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState({
-    full_name: user?.full_name || '',
-    phone: user?.phone || '',
-    address: user?.address || ''
+    full_name: user?.full_name || ''
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        full_name: user.full_name,
-        phone: user.phone || '',
-        address: user.address || ''
+        full_name: user.full_name
       });
       loadOrders();
     }
@@ -59,9 +55,7 @@ const UserProfile: React.FC = () => {
 
   const handleCancel = () => {
     setFormData({
-      full_name: user?.full_name || '',
-      phone: user?.phone || '',
-      address: user?.address || ''
+      full_name: user?.full_name || ''
     });
     setIsEditing(false);
     setError('');
@@ -110,7 +104,17 @@ const UserProfile: React.FC = () => {
       {/* Profile Header */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+          <div className="flex items-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="M.A Online Store" 
+              className="h-12 w-12 rounded-xl shadow-md"
+            />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage your account information</p>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             {!isEditing ? (
               <button
@@ -195,30 +199,7 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Phone Number
-            </label>
-            {isEditing ? (
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="+256 XXX XXX XXX"
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <Phone className="text-gray-400" size={20} />
-                <span className="text-gray-900 dark:text-white">{user.phone || 'Not provided'}</span>
-              </div>
-            )}
-          </div>
-
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Member Since
             </label>
@@ -232,29 +213,6 @@ const UserProfile: React.FC = () => {
                 })}
               </span>
             </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Address
-            </label>
-            {isEditing ? (
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Enter your address"
-                  rows={3}
-                />
-              </div>
-            ) : (
-              <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <MapPin className="text-gray-400 mt-0.5" size={20} />
-                <span className="text-gray-900 dark:text-white">{user.address || 'Not provided'}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>

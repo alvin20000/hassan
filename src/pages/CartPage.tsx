@@ -13,8 +13,6 @@ const CartPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    email: '',
     phone: '',
     address: '',
     notes: ''
@@ -22,15 +20,12 @@ const CartPage: React.FC = () => {
 
   // Auto-fill customer info if user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
-      setCustomerInfo({
-        name: user.full_name,
-        email: user.email,
-        phone: user.phone || '',
-        address: user.address || '',
-        notes: ''
-      });
-    }
+    // Reset form when authentication state changes
+    setCustomerInfo({
+      phone: '',
+      address: '',
+      notes: ''
+    });
   }, [isAuthenticated, user]);
 
   const handleInputChange = (field: string, value: string) => {
@@ -57,8 +52,8 @@ const CartPage: React.FC = () => {
                      })}\n\n`;
 
     const customerDetails = `👤 *Customer Information*\n` +
-                           `📝 Name: ${customerInfo.name}\n` +
-                           `📧 Email: ${customerInfo.email || 'Not provided'}\n` +
+                           `📝 Name: ${user?.full_name || 'Not provided'}\n` +
+                           `📧 Email: ${user?.email || 'Not provided'}\n` +
                            `📱 Phone: ${customerInfo.phone || 'Not provided'}\n` +
                            `🏠 Address: ${customerInfo.address || 'Not provided'}\n\n`;
 
@@ -98,11 +93,15 @@ const CartPage: React.FC = () => {
       return;
     }
     
-    if (!customerInfo.name.trim()) {
-      alert('Please enter your name');
+    if (!customerInfo.phone.trim()) {
+      alert('Please enter your phone number');
       return;
     }
 
+    if (!customerInfo.address.trim()) {
+      alert('Please enter your delivery address');
+      return;
+    }
     setIsProcessing(true);
 
     try {
@@ -117,6 +116,8 @@ const CartPage: React.FC = () => {
       console.log('Submitting order for user:', user?.id);
       const { data, error } = await supabase.rpc('create_complete_order_with_user', {
         p_user_id: user?.id,
+        p_customer_phone: customerInfo.phone,
+        p_customer_address: customerInfo.address,
         p_order_items: orderItems,
         p_total_amount: totalPrice,
         p_notes: customerInfo.notes.trim() || null
@@ -364,16 +365,15 @@ const CartPage: React.FC = () => {
               <div className="flex justify-between">
                 <span>Total Items:</span>
                 <span className="font-medium">{items.length}</span>
-              </div>
+                Your Name
               <div className="flex justify-between">
                 <span>Total Quantity:</span>
                 <span className="font-medium">{items.reduce((sum, item) => sum + item.quantity, 0)} units</span>
-              </div>
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                value={user?.full_name || ''}
+                readOnly
                 <div className="flex justify-between text-lg md:text-xl font-bold">
                   <span>Total Amount:</span>
-                  <span className="text-primary">UGX {totalPrice.toLocaleString()}</span>
-                </div>
+                placeholder="Your name from profile"
               </div>
             </div>
             
@@ -388,15 +388,15 @@ const CartPage: React.FC = () => {
                   Processing Order...
                 </>
               ) : !isAuthenticated ? (
-                <>
+                Your Email
                   <User size={24} />
                   Sign In to Place Order
                 </>
-              ) : (
-                <>
+                value={user?.email || ''}
+                readOnly
                   <ShoppingBag size={24} />
                   Place Order via WhatsApp
-                </>
+                placeholder="Your email from profile"
               )}
             </button>
             
