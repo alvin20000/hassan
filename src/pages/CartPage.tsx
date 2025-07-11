@@ -364,16 +364,14 @@ const CartPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Total Items:</span>
-                <span className="font-medium">{items.length}</span>
                 Your Name
               <div className="flex justify-between">
                 <span>Total Quantity:</span>
                 <span className="font-medium">{items.reduce((sum, item) => sum + item.quantity, 0)} units</span>
-                value={user?.full_name || ''}
-                readOnly
+              </div>
                 <div className="flex justify-between text-lg md:text-xl font-bold">
                   <span>Total Amount:</span>
-                placeholder="Your name from profile"
+                <span>UGX {totalPrice.toLocaleString()}</span>
               </div>
             </div>
             
@@ -388,15 +386,15 @@ const CartPage: React.FC = () => {
                   Processing Order...
                 </>
               ) : !isAuthenticated ? (
-                Your Email
+                <>
                   <User size={24} />
                   Sign In to Place Order
                 </>
-                value={user?.email || ''}
-                readOnly
+              ) : (
+                <>
                   <ShoppingBag size={24} />
                   Place Order via WhatsApp
-                placeholder="Your email from profile"
+                </>
               )}
             </button>
             
