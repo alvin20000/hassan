@@ -8,6 +8,7 @@ import HelpPage from './pages/HelpPage';
 import CartPage from './pages/CartPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboard from './pages/AdminDashboard';
+import UserProfilePage from './pages/UserProfilePage';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
 import { UserAuthProvider } from './context/UserAuthContext';
