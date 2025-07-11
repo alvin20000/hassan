@@ -364,13 +364,14 @@ const CartPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Total Items:</span>
-                Your Name
+                <span className="font-medium">{items.length}</span>
+              </div>
               <div className="flex justify-between">
                 <span>Total Quantity:</span>
                 <span className="font-medium">{items.reduce((sum, item) => sum + item.quantity, 0)} units</span>
               </div>
-                <div className="flex justify-between text-lg md:text-xl font-bold">
-                  <span>Total Amount:</span>
+              <div className="flex justify-between text-lg md:text-xl font-bold">
+                <span>Total Amount:</span>
                 <span>UGX {totalPrice.toLocaleString()}</span>
               </div>
             </div>
