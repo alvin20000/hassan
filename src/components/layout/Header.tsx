@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Sun, Moon, ShoppingBag, User } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCart } from '../../context/CartContext';
@@ -11,6 +11,7 @@ const Header: React.FC = () => {
   const { theme, setTheme, isDark } = useTheme();
   const { totalItems } = useCart();
   const { user, isAuthenticated } = useUserAuth();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
