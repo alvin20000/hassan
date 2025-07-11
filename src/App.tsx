@@ -50,6 +50,7 @@ function App() {
                         <Route path="/promotions" element={<PromotionsPage />} />
                         <Route path="/help" element={<HelpPage />} />
                         <Route path="/cart" element={<CartPage />} />
+                        <Route path="/profile" element={<UserProfilePage />} />
                       </Routes>
                     </div>
                     <CurvedNavbar />

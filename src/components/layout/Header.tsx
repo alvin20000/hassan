@@ -79,7 +79,7 @@ const Header: React.FC = () => {
             {/* User Authentication */}
             {isAuthenticated ? (
               <button
-                onClick={() => setShowUserProfile(true)}
+                onClick={() => navigate('/profile')}
                 className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="User profile"
               >
@@ -119,24 +119,6 @@ const Header: React.FC = () => {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />
-
-      {/* User Profile Modal */}
-      {showUserProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">User Profile</h2>
-              <button
-                onClick={() => setShowUserProfile(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                ×
-              </button>
-            </div>
-            <UserProfile />
-          </div>
-        </div>
-      )}
     </header>
   );
 };
