@@ -587,10 +587,47 @@ const OrdersPage: React.FC = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
+                            {/* Quick Status Update Buttons */}
+                            {order.status === 'pending' && (
+                              <button
+                                onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                                className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                                title="Confirm Order"
+                              >
+                                Confirm
+                              </button>
+                            )}
+                            {order.status === 'confirmed' && (
+                              <button
+                                onClick={() => updateOrderStatus(order.id, 'processing')}
+                                className="px-2 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition-colors"
+                                title="Start Processing"
+                              >
+                                Process
+                              </button>
+                            )}
+                            {order.status === 'processing' && (
+                              <button
+                                onClick={() => updateOrderStatus(order.id, 'shipped')}
+                                className="px-2 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700 transition-colors"
+                                title="Mark as Shipped"
+                              >
+                                Ship
+                              </button>
+                            )}
+                            {order.status === 'shipped' && (
+                              <button
+                                onClick={() => updateOrderStatus(order.id, 'delivered')}
+                                className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                                title="Mark as Delivered"
+                              >
+                                Deliver
+                              </button>
+                            )}
                             <select
                               value={order.status}
                               onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white ml-2"
                             >
                               {orderStatuses.map(status => (
                                 <option key={status.value} value={status.value}>
