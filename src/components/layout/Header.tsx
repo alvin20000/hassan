@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { Sun, Moon, ShoppingBag, User } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { Sun, Moon, ShoppingBag } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCart } from '../../context/CartContext';
-import { useUserAuth } from '../../context/UserAuthContext';
-import AuthModal from '../auth/AuthModal';
-import UserProfile from '../user/UserProfile';
 
 const Header: React.FC = () => {
   const { theme, setTheme, isDark } = useTheme();
   const { totalItems } = useCart();
-  const { user, isAuthenticated } = useUserAuth();
-  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showUserProfile, setShowUserProfile] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,28 +70,6 @@ const Header: React.FC = () => {
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            {/* User Authentication */}
-            {isAuthenticated ? (
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                aria-label="User profile"
-              >
-                <User size={20} />
-                <span className="hidden md:inline text-sm font-medium">
-                  {user?.full_name?.split(' ')[0]}
-                </span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-              >
-                <User size={16} />
-                <span>Sign In</span>
-              </button>
-            )}
-
             <NavLink 
               to="/cart" 
               className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
@@ -114,12 +85,6 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
     </header>
   );
 };

@@ -11,7 +11,7 @@ interface AuthContextType {
   isAdmin: boolean;
 }
 
-// Dummy user data for demonstration purposes
+// Dummy user data for demonstration purposes (admin only)
 const DUMMY_USERS: User[] = [
   {
     id: '1',
@@ -19,14 +19,7 @@ const DUMMY_USERS: User[] = [
     email: 'admin@example.com',
     role: 'admin',
     avatar: 'https://i.pravatar.cc/150?u=admin',
-  },
-  {
-    id: '2',
-    name: 'Regular User',
-    email: 'user@example.com',
-    role: 'user',
-    avatar: 'https://i.pravatar.cc/150?u=user',
-  },
+  }
 ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,11 +29,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved user in localStorage
+    // Check for saved admin user in localStorage
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        if (parsedUser.role === 'admin') {
+          setUser(parsedUser);
+        }
       } catch (e) {
         console.error('Failed to parse user data', e);
       }
@@ -55,8 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Find user by email (for demo purposes)
-      const foundUser = DUMMY_USERS.find(u => u.email === email);
+      // Find admin user by email
+      const foundUser = DUMMY_USERS.find(u => u.email === email && u.role === 'admin');
       
       if (foundUser) {
         setUser(foundUser);
@@ -73,36 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    setLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Check if email already exists (for demo purposes)
-      const existingUser = DUMMY_USERS.find(u => u.email === email);
-      if (existingUser) {
-        return false;
-      }
-      
-      // Create new user (in a real app, this would be done on the server)
-      const newUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        name,
-        email,
-        role: 'user',
-        avatar: `https://i.pravatar.cc/150?u=${email}`,
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      return true;
-    } catch (error) {
-      console.error('Registration error:', error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    // Registration disabled for public users
+    return false;
   };
 
   const logout = () => {

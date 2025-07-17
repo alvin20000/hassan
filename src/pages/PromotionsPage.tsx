@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { PROMOTIONS } from '../mocks/data';
-import { ShoppingBag, Clock, Tag, Filter } from 'lucide-react';
+import { ShoppingBag, Clock, Tag, Filter, Star, ArrowRight, Percent } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 const PromotionsPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const { addItem } = useCart();
+  const navigate = useNavigate();
 
   const filteredPromotions = activeFilter
     ? PROMOTIONS.filter(promo => promo.applicable === activeFilter)
@@ -24,136 +28,194 @@ const PromotionsPage: React.FC = () => {
     return start <= now && now <= end;
   };
 
+  const handleShopNow = (promo: any) => {
+    // Navigate to home page with filter or add to cart
+    navigate('/');
+  };
+
   return (
     <div className="pb-20 md:pb-0">
-      <div className="bg-gradient-to-r from-primary/20 to-secondary/20 dark:from-primary/10 dark:to-secondary/10 rounded-2xl p-8 mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Special Offers & Promotions
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Take advantage of our latest deals and discounts on quality products.
-        </p>
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 dark:from-primary/10 dark:via-secondary/5 dark:to-accent/10 rounded-3xl p-8 md:p-12 mb-12 overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -translate-y-16 translate-x-16"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/10 rounded-full translate-y-12 -translate-x-12"></div>
+        
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="p-3 bg-primary/20 rounded-2xl">
+              <Percent className="text-primary" size={32} />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              Special Offers
+            </h1>
+          </div>
+          <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mb-8">
+            Discover amazing deals and exclusive discounts on your favorite food items
+          </p>
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2">
+              <Star className="text-yellow-500" size={16} />
+              <span>Premium Quality</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="text-green-500" size={16} />
+              <span>Limited Time</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Tag className="text-blue-500" size={16} />
+              <span>Best Prices</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <Filter className="text-gray-600 dark:text-gray-300" size={20} />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filter by:</h2>
+      <div className="mb-10">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <Filter className="text-gray-600 dark:text-gray-300" size={20} />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Filter Promotions</h2>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setActiveFilter(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === null
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            All Promotions
-          </button>
-          <button
-            onClick={() => setActiveFilter('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === 'all'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            All Products
-          </button>
-          <button
-            onClick={() => setActiveFilter('category')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === 'category'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Category Specific
-          </button>
-          <button
-            onClick={() => setActiveFilter('product')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === 'product'
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            Product Specific
-          </button>
+          {[
+            { key: null, label: 'All Promotions', icon: '🎯' },
+            { key: 'all', label: 'All Products', icon: '🛍️' },
+            { key: 'category', label: 'Category Specific', icon: '📂' },
+            { key: 'product', label: 'Product Specific', icon: '🎁' }
+          ].map((filter) => (
+            <button
+              key={filter.key}
+              onClick={() => setActiveFilter(filter.key)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 ${
+                activeFilter === filter.key
+                  ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+              }`}
+            >
+              <span>{filter.icon}</span>
+              {filter.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPromotions.map(promo => (
-          <div key={promo.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden group hover:shadow-lg transition-all duration-300">
-            {promo.image && (
-              <div className="h-48 overflow-hidden relative">
-                <img 
-                  src={promo.image} 
-                  alt={promo.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute top-4 right-4">
-                  {isActive(promo.startDate, promo.endDate) ? (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-sm font-medium">
-                      <Clock size={14} />
-                      {getDaysRemaining(promo.endDate)} days left
+      {/* Promotions Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredPromotions.map(promo => {
+          const daysLeft = getDaysRemaining(promo.endDate);
+          const isPromoActive = isActive(promo.startDate, promo.endDate);
+          
+          return (
+            <div key={promo.id} className="group bg-white dark:bg-gray-800 rounded-3xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-gray-100 dark:border-gray-700">
+              {/* Image Section */}
+              {promo.image && (
+                <div className="relative h-56 overflow-hidden">
+                  <img 
+                    src={promo.image} 
+                    alt={promo.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  {/* Discount Badge */}
+                  <div className="absolute top-4 left-4">
+                    <div className="bg-red-500 text-white px-4 py-2 rounded-2xl font-bold text-lg shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                      {promo.discount}% OFF
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-full text-sm font-medium">
-                      <Clock size={14} />
-                      {new Date(promo.startDate) > new Date() ? 'Coming soon' : 'Expired'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {promo.title}
-                </h3>
-                <span className="px-3 py-1 bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200 text-sm font-medium rounded-full">
-                  {promo.discount}% OFF
-                </span>
-              </div>
-              
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                {promo.description}
-              </p>
-              
-              {promo.code && (
-                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                  <div className="flex items-center gap-2">
-                    <Tag size={16} className="text-gray-500 dark:text-gray-400" />
-                    <p className="text-sm text-gray-600 dark:text-gray-300">Use Code:</p>
                   </div>
-                  <code className="text-lg font-mono font-bold text-primary block mt-1">
-                    {promo.code}
-                  </code>
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4">
+                    {isPromoActive ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-green-500/90 backdrop-blur-sm text-white rounded-2xl text-sm font-semibold shadow-lg">
+                        <Clock size={16} />
+                        {daysLeft} days left
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gray-500/90 backdrop-blur-sm text-white rounded-2xl text-sm font-semibold shadow-lg">
+                        <Clock size={16} />
+                        {new Date(promo.startDate) > new Date() ? 'Coming Soon' : 'Expired'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Min. purchase: UGX {promo.minimumPurchase?.toLocaleString()}
+              {/* Content Section */}
+              <div className="p-6">
+                {/* Title and Description */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                    {promo.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed line-clamp-3">
+                    {promo.description}
+                  </p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                  <ShoppingBag size={18} />
-                  Shop Now
-                </button>
+                
+                {/* Promo Code */}
+                {promo.code && (
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 p-4 rounded-2xl mb-6 border-2 border-dashed border-gray-300 dark:border-gray-500">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Tag size={16} className="text-primary" />
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Promo Code:</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <code className="text-lg font-bold text-primary font-mono bg-white dark:bg-gray-800 px-3 py-1 rounded-lg">
+                        {promo.code}
+                      </code>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText(promo.code)}
+                        className="text-xs bg-primary text-white px-3 py-1 rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Footer */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-medium">Min. purchase:</span>
+                    <br />
+                    <span className="text-primary font-bold">UGX {promo.minimumPurchase?.toLocaleString()}</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleShopNow(promo)}
+                    className="group/btn flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-semibold hover:bg-primary/90 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    <ShoppingBag size={18} />
+                    <span>Shop Now</span>
+                    <ArrowRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
+      {/* Empty State */}
       {filteredPromotions.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400">No promotions found for the selected filter.</p>
+        <div className="text-center py-16">
+          <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Tag className="text-gray-400" size={32} />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Promotions Found</h3>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            No promotions match your selected filter. Try selecting a different category.
+          </p>
+          <button
+            onClick={() => setActiveFilter(null)}
+            className="px-6 py-3 bg-primary text-white rounded-2xl font-semibold hover:bg-primary/90 transition-colors"
+          >
+            View All Promotions
+          </button>
         </div>
       )}
     </div>

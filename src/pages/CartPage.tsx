@@ -1,48 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { useUserAuth } from '../context/UserAuthContext';
-import { ShoppingBag, User, Phone, Mail, MapPin, MessageSquare, Loader2, Minus, Plus, Trash2 } from 'lucide-react';
+import { ShoppingBag, User, Phone, Mail, MapPin, MessageSquare, Loader2, Minus, Plus, Trash2, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { orderService } from '../services/orderService';
-import AuthModal from '../components/auth/AuthModal';
+import { supabase } from '../lib/supabase';
 
 const CartPage: React.FC = () => {
   const { items, updateQuantity, removeItem, totalPrice, clearCart } = useCart();
-  const { user, isAuthenticated } = useUserAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
-    // For non-authenticated users
     full_name: '',
     email: '',
     phone: '',
     address: '',
     notes: ''
   });
-
-  // Reset form when authentication state changes
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // For authenticated users, only need phone and address
-      setCustomerInfo({
-        full_name: user.full_name,
-        email: user.email,
-        phone: '',
-        address: '',
-        notes: ''
-      });
-    } else {
-      // For non-authenticated users, need all fields
-      setCustomerInfo({
-        full_name: '',
-        email: '',
-        phone: '',
-        address: '',
-        notes: ''
-      });
-    }
-  }, [isAuthenticated, user]);
 
   const handleInputChange = (field: string, value: string) => {
     setCustomerInfo(prev => ({
@@ -52,7 +25,7 @@ const CartPage: React.FC = () => {
   };
 
   const formatModernWhatsAppMessage = (orderNumber: string) => {
-    const header = `🛍️ *NEW ORDER PLACED* 🛍️\n\n`;
+    const header = `🛍️ *NEW FOOD ORDER PLACED* 🛍️\n\n`;
     
     const orderInfo = `📋 *Order Details*\n` +
                      `🔢 Order #: *${orderNumber}*\n` +
@@ -101,34 +74,21 @@ const CartPage: React.FC = () => {
   };
 
   const validateForm = () => {
-    if (isAuthenticated) {
-      // For authenticated users, only validate phone and address
-      if (!customerInfo.phone.trim()) {
-        alert('Please enter your phone number');
-        return false;
-      }
-      if (!customerInfo.address.trim()) {
-        alert('Please enter your delivery address');
-        return false;
-      }
-    } else {
-      // For non-authenticated users, validate all fields
-      if (!customerInfo.full_name.trim()) {
-        alert('Please enter your full name');
-        return false;
-      }
-      if (!customerInfo.email.trim()) {
-        alert('Please enter your email address');
-        return false;
-      }
-      if (!customerInfo.phone.trim()) {
-        alert('Please enter your phone number');
-        return false;
-      }
-      if (!customerInfo.address.trim()) {
-        alert('Please enter your delivery address');
-        return false;
-      }
+    if (!customerInfo.full_name.trim()) {
+      alert('Please enter your full name');
+      return false;
+    }
+    if (!customerInfo.email.trim()) {
+      alert('Please enter your email address');
+      return false;
+    }
+    if (!customerInfo.phone.trim()) {
+      alert('Please enter your phone number');
+      return false;
+    }
+    if (!customerInfo.address.trim()) {
+      alert('Please enter your delivery address');
+      return false;
     }
     return true;
   };
@@ -141,7 +101,6 @@ const CartPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Create order with user context if authenticated
       const orderItems = items.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
@@ -149,59 +108,31 @@ const CartPage: React.FC = () => {
         total_price: item.product.price * item.quantity
       }));
 
-      let result;
-      
-      if (isAuthenticated && user) {
-        // For authenticated users, use the enhanced function with user context
-        console.log('Submitting order for authenticated user:', user.id);
-        const { data, error } = await supabase.rpc('create_complete_order_with_user', {
-          p_user_id: user.id,
-          p_customer_phone: customerInfo.phone,
-          p_customer_address: customerInfo.address,
-          p_order_items: orderItems,
-          p_total_amount: totalPrice,
-          p_notes: customerInfo.notes.trim() || null
-        });
+      const { data, error } = await supabase.rpc('create_complete_order', {
+        p_customer_name: customerInfo.full_name,
+        p_order_items: orderItems,
+        p_total_amount: totalPrice,
+        p_customer_email: customerInfo.email || null,
+        p_customer_phone: customerInfo.phone || null,
+        p_customer_address: customerInfo.address || null,
+        p_notes: customerInfo.notes.trim() || null
+      });
 
-        if (error) {
-          throw new Error(`Failed to create order: ${error.message}`);
-        }
-        result = data;
-      } else {
-        // For non-authenticated users, use the regular function
-        console.log('Submitting order for guest user');
-        const { data, error } = await supabase.rpc('create_complete_order', {
-          p_customer_name: customerInfo.full_name,
-          p_order_items: orderItems,
-          p_total_amount: totalPrice,
-          p_customer_email: customerInfo.email || null,
-          p_customer_phone: customerInfo.phone || null,
-          p_customer_address: customerInfo.address || null,
-          p_notes: customerInfo.notes.trim() || null
-        });
-
-        if (error) {
-          throw new Error(`Failed to create order: ${error.message}`);
-        }
-        result = data;
+      if (error) {
+        throw new Error(`Failed to create order: ${error.message}`);
       }
 
-      console.log('Order created:', result);
+      console.log('Order created:', data);
 
-      // Format WhatsApp message with order number
-      const message = formatModernWhatsAppMessage(result.order_number);
+      const message = formatModernWhatsAppMessage(data.order_number);
       const encodedMessage = encodeURIComponent(message);
       
-      // Open WhatsApp
       window.open(`https://wa.me/256741068782?text=${encodedMessage}`, '_blank');
       
-      // Clear cart and redirect
       clearCart();
       
-      // Show success message
-      alert(`Order ${result.order_number} placed successfully! You'll be redirected to WhatsApp to complete your order.`);
+      alert(`Order ${data.order_number} placed successfully! You'll be redirected to WhatsApp to complete your order.`);
       
-      // Redirect to home page
       navigate('/');
       
     } catch (error) {
@@ -217,6 +148,24 @@ const CartPage: React.FC = () => {
       removeItem(productId);
     } else {
       updateQuantity(productId, newQuantity);
+    }
+  };
+
+  const useCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          // You can use reverse geocoding here to get the address
+          handleInputChange('address', `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          alert('Unable to get your current location. Please enter your address manually.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by this browser.');
     }
   };
 
@@ -274,7 +223,6 @@ const CartPage: React.FC = () => {
                     UGX {product.price.toLocaleString()} / {product.unit}
                   </p>
                   
-                  {/* Quantity Controls and Actions */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium">Quantity:</span>
@@ -322,146 +270,102 @@ const CartPage: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-lg">
             <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center gap-2">
               <User size={24} className="text-primary" />
-              {isAuthenticated ? 'Delivery Information' : 'Customer Information'}
+              Customer Information
             </h2>
             
-            {!isAuthenticated && (
-              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p className="text-blue-600 dark:text-blue-400 text-sm mb-2">
-                  Sign in to auto-fill your information and track your orders.
-                </p>
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm"
-                >
-                  Sign In / Sign Up
-                </button>
-              </div>
-            )}
-            
             <div className="space-y-4">
-              {/* Show different forms based on authentication */}
-              {isAuthenticated ? (
-                // Authenticated user form - only phone and address
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      value={user?.full_name || ''}
-                      disabled
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  value={customerInfo.full_name}
+                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                  <Mail size={16} />
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  value={customerInfo.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
+                  placeholder="your.email@example.com"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                  <Phone size={16} />
+                  Phone Number *
+                </label>
+                <input
+                  type="tel"
+                  value={customerInfo.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
+                  placeholder="+256 XXX XXX XXX"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                  <MapPin size={16} />
+                  Delivery Address *
+                </label>
+                <div className="space-y-2">
+                  <textarea
+                    value={customerInfo.address}
+                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
+                    placeholder="Enter your delivery address"
+                    rows={3}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={useCurrentLocation}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    <Navigation size={16} />
+                    Use Current Location
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMap(!showMap)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <MapPin size={16} />
+                    {showMap ? 'Hide Map' : 'Show Map'}
+                  </button>
+                </div>
+                
+                {/* Google Maps Integration */}
+                {showMap && (
+                  <div className="mt-4 h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255281.19034036464!2d32.290275!3d0.347596!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x177dbd52f25e5555%3A0x614b8c4d8b7c0c0c!2sKampala%2C%20Uganda!5e0!3m2!1sen!2sus!4v1642000000000!5m2!1sen!2sus"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      className="rounded-lg"
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <Mail size={16} />
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <Phone size={16} />
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      value={customerInfo.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="+256 XXX XXX XXX"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <MapPin size={16} />
-                      Delivery Address *
-                    </label>
-                    <textarea
-                      value={customerInfo.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="Enter your delivery address"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                </>
-              ) : (
-                // Non-authenticated user form - all fields
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={customerInfo.full_name}
-                      onChange={(e) => handleInputChange('full_name', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <Mail size={16} />
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      value={customerInfo.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="your.email@example.com"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <Phone size={16} />
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      value={customerInfo.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="+256 XXX XXX XXX"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                      <MapPin size={16} />
-                      Delivery Address *
-                    </label>
-                    <textarea
-                      value={customerInfo.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                      placeholder="Enter your delivery address"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                </>
-              )}
+                )}
+              </div>
               
               <div>
                 <label className="block text-sm font-medium mb-2 flex items-center gap-2">
@@ -510,7 +414,7 @@ const CartPage: React.FC = () => {
               ) : (
                 <>
                   <ShoppingBag size={24} />
-                  Place Order via WhatsApp
+                  Submit Order
                 </>
               )}
             </button>
@@ -521,12 +425,6 @@ const CartPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
     </div>
   );
 };
