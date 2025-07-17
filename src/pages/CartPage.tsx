@@ -10,11 +10,8 @@ const CartPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
-    full_name: '',
-    email: '',
     phone: '',
     address: '',
-    notes: ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -41,8 +38,6 @@ const CartPage: React.FC = () => {
                      })}\n\n`;
 
     const customerDetails = `👤 *Customer Information*\n` +
-                           `📝 Name: ${customerInfo.full_name}\n` +
-                           `📧 Email: ${customerInfo.email}\n` +
                            `📱 Phone: ${customerInfo.phone}\n` +
                            `🏠 Address: ${customerInfo.address}\n\n`;
 
@@ -61,8 +56,6 @@ const CartPage: React.FC = () => {
                    `🧮 Total Quantity: ${items.reduce((sum, item) => sum + item.quantity, 0)} units\n` +
                    `💵 *Total Amount: UGX ${totalPrice.toLocaleString()}*\n\n`;
 
-    const notes = customerInfo.notes ? 
-                 `📝 *Special Notes*\n${customerInfo.notes}\n\n` : '';
 
     const footer = `✅ *Order Status: PENDING*\n` +
                   `🚚 Delivery will be arranged after confirmation\n` +
@@ -70,18 +63,10 @@ const CartPage: React.FC = () => {
                   `Thank you for choosing M.A Online Store! 🙏\n` +
                   `We'll contact you shortly to confirm your order.`;
 
-    return header + orderInfo + customerDetails + itemsHeader + itemsList + summary + notes + footer;
+    return header + orderInfo + customerDetails + itemsHeader + itemsList + summary + footer;
   };
 
   const validateForm = () => {
-    if (!customerInfo.full_name.trim()) {
-      alert('Please enter your full name');
-      return false;
-    }
-    if (!customerInfo.email.trim()) {
-      alert('Please enter your email address');
-      return false;
-    }
     if (!customerInfo.phone.trim()) {
       alert('Please enter your phone number');
       return false;
@@ -109,13 +94,13 @@ const CartPage: React.FC = () => {
       }));
 
       const { data, error } = await supabase.rpc('create_complete_order', {
-        p_customer_name: customerInfo.full_name,
+        p_customer_name: 'Customer', // Default name since we removed the field
         p_order_items: orderItems,
         p_total_amount: totalPrice,
-        p_customer_email: customerInfo.email || null,
+        p_customer_email: null, // Removed email field
         p_customer_phone: customerInfo.phone || null,
         p_customer_address: customerInfo.address || null,
-        p_notes: customerInfo.notes.trim() || null
+        p_notes: null // Removed notes field
       });
 
       if (error) {
@@ -275,35 +260,6 @@ const CartPage: React.FC = () => {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={customerInfo.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                  placeholder="Enter your full name"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                  <Mail size={16} />
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  value={customerInfo.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                  placeholder="your.email@example.com"
-                  required
-                />
-              </div>
-              
-              <div>
                 <label className="block text-sm font-medium mb-2 flex items-center gap-2">
                   <Phone size={16} />
                   Phone Number *
@@ -365,20 +321,6 @@ const CartPage: React.FC = () => {
                     />
                   </div>
                 )}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                  <MessageSquare size={16} />
-                  Special Notes
-                </label>
-                <textarea
-                  value={customerInfo.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700"
-                  placeholder="Any special instructions or requests..."
-                  rows={3}
-                />
               </div>
             </div>
           </div>

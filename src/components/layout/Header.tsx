@@ -57,6 +57,7 @@ const Header: React.FC = () => {
 
           <nav className="hidden md:flex items-center space-x-4">
             <NavLink to="/" className={navLinkClass}>Home</NavLink>
+            <NavLink to="/products" className={navLinkClass}>Products</NavLink>
             <NavLink to="/promotions" className={navLinkClass}>Promotions</NavLink>
             <NavLink to="/help" className={navLinkClass}>Help</NavLink>
           </nav>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Tag, HelpCircle } from 'lucide-react';
+import { Home, ShoppingBag, Tag, HelpCircle, ShoppingCart } from 'lucide-react';
 
 interface NavItemProps {
   to: string;
@@ -34,8 +34,9 @@ const CurvedNavbar: React.FC = () => {
   
   const navItems = [
     { to: '/', icon: <Home size={24} />, label: 'Home' },
+    { to: '/products', icon: <ShoppingBag size={24} />, label: 'Products' },
     { to: '/promotions', icon: <Tag size={24} />, label: 'Promotions' },
-    { to: '/cart', icon: <ShoppingBag size={24} />, label: 'Cart' },
+    { to: '/cart', icon: <ShoppingCart size={24} />, label: 'Cart' },
     { to: '/help', icon: <HelpCircle size={24} />, label: 'Help' },
   ];
 

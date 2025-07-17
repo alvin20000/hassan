@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/layout/Header';
 import CurvedNavbar from './components/layout/CurvedNavbar';
 import HomePage from './pages/HomePage';
+import ProductsPage from './pages/ProductsPage';
 import PromotionsPage from './pages/PromotionsPage';
 import HelpPage from './pages/HelpPage';
 import CartPage from './pages/CartPage';
@@ -45,6 +46,7 @@ function App() {
                   <div className="container mx-auto px-4 pt-20">
                     <Routes>
                       <Route path="/" element={<HomePage />} />
+                      <Route path="/products" element={<ProductsPage />} />
                       <Route path="/promotions" element={<PromotionsPage />} />
                       <Route path="/help" element={<HelpPage />} />
                       <Route path="/cart" element={<CartPage />} />
